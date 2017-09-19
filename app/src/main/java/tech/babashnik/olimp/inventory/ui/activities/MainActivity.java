@@ -18,7 +18,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import tech.babashnik.olimp.inventory.data.App;
 import tech.babashnik.olimp.inventory.data.components.olimp.OlimpApi;
-import tech.babashnik.olimp.inventory.data.components.olimp.inventory.InventoryItemResponse;
+import tech.babashnik.olimp.inventory.data.components.olimp.inventory.InventoryItem;
 import tech.babashnik.olimp.inventory.ui.fragments.OlimpInventoryItemViewDialog;
 
 public class MainActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
@@ -52,16 +52,16 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
         OlimpApi oA = App.Companion.getOlimp();
         if (oA == null)
             return;
-        oA.getInventoryItem(result.getText()).enqueue(new Callback<InventoryItemResponse>() {
+        oA.getInventoryItem(result.getText()).enqueue(new Callback<InventoryItem>() {
             public void onResponse(@NotNull Call call, Response response) {
                 if (response == null) {
                     MainActivity.this.scannerView.resumeCameraPreview(MainActivity.this);
                     return;
                 }
-                String name = ((InventoryItemResponse) response.body()).getName();
-                String title = ((InventoryItemResponse) response.body()).getTitle();
-                String desc = ((InventoryItemResponse) response.body()).getDescription();
-                String href = ((InventoryItemResponse) response.body()).getHref();
+                String name = ((InventoryItem) response.body()).getName();
+                String title = ((InventoryItem) response.body()).getTitle();
+                String desc = ((InventoryItem) response.body()).getDescription();
+                String href = ((InventoryItem) response.body()).getHref();
                 OlimpInventoryItemViewDialog.newInstance(name, title, desc, href).show(getFragmentManager(), "ViewDialog");
             }
 

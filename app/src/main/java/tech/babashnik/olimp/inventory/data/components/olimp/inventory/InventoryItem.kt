@@ -3,7 +3,7 @@ package tech.babashnik.olimp.inventory.data.components.olimp.inventory
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class InventoryItemResponse {
+class InventoryItem {
 
     @SerializedName("name")
     @Expose
