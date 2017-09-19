@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import tech.babashnik.olimp.inventory.R;
@@ -17,11 +18,11 @@ import tech.babashnik.olimp.inventory.data.DataBase;
 import tech.babashnik.olimp.inventory.ui.activities.MainActivity;
 
 
-public class OlimpInventoryItemViewDialog extends DialogFragment {
-    String name, title, desc, href;
+public class OlimpInventoryItemEditDialog extends DialogFragment {
+    String name, title = "", desc = "", href = "";
 
-    public static OlimpInventoryItemViewDialog newInstance(String inventoryName) {
-        OlimpInventoryItemViewDialog f = new OlimpInventoryItemViewDialog();
+    public static OlimpInventoryItemEditDialog newInstance(String inventoryName) {
+        OlimpInventoryItemEditDialog f = new OlimpInventoryItemEditDialog();
         Bundle args = new Bundle();
         args.putString("name", inventoryName);
         f.setArguments(args);
@@ -35,13 +36,11 @@ public class OlimpInventoryItemViewDialog extends DialogFragment {
         name = getArguments().getString("name");
         DataBase db = new DataBase(getActivity().getApplicationContext());
         Cursor c = db.query("olimp_inventory_items", null, "name='" + name + "'", null, null, null, null);
-        if (c == null || !c.moveToFirst()) {
-            dismiss();
-            return;
+        if (c != null && c.moveToFirst()) {
+            title = c.getString(c.getColumnIndex("title"));
+            desc = c.getString(c.getColumnIndex("description"));
+            href = c.getString(c.getColumnIndex("href"));
         }
-        title = c.getString(c.getColumnIndex("title"));
-        desc = c.getString(c.getColumnIndex("description"));
-        href = c.getString(c.getColumnIndex("href"));
     }
 
     @Override
@@ -59,11 +58,11 @@ public class OlimpInventoryItemViewDialog extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.olimp_inventory_item_view, container, false);
+        View v = inflater.inflate(R.layout.olimp_inventory_item_edit, container, false);
         ((TextView) v.findViewById(R.id.nameView)).setText(name);
-        ((TextView) v.findViewById(R.id.titleView)).setText(title);
-        ((TextView) v.findViewById(R.id.descriptionView)).setText(desc);
-        ((TextView) v.findViewById(R.id.hrefView)).setText(href);
+        ((EditText) v.findViewById(R.id.titleEdit)).setText(title);
+        ((EditText) v.findViewById(R.id.descriptionEdit)).setText(desc);
+        ((EditText) v.findViewById(R.id.hrefEdit)).setText(href);
         return v;
     }
 

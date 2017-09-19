@@ -2,6 +2,7 @@ package tech.babashnik.olimp.inventory.ui.activities;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -12,8 +13,6 @@ import com.google.zxing.Result;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,6 +21,7 @@ import tech.babashnik.olimp.inventory.data.App;
 import tech.babashnik.olimp.inventory.data.DataBase;
 import tech.babashnik.olimp.inventory.data.components.olimp.OlimpApi;
 import tech.babashnik.olimp.inventory.data.components.olimp.inventory.InventoryItem;
+import tech.babashnik.olimp.inventory.ui.fragments.OlimpInventoryItemEditDialog;
 import tech.babashnik.olimp.inventory.ui.fragments.OlimpInventoryItemViewDialog;
 
 public class MainActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
     }
 
     @Override
-    public void handleResult(Result result) {
+    public void handleResult(final Result result) {
         OlimpApi oA = App.Companion.getOlimp();
         if (oA == null)
             return;
@@ -61,25 +61,29 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
                     MainActivity.this.scannerView.resumeCameraPreview(MainActivity.this);
                     return;
                 }
-                String name = ((InventoryItem) response.body()).getName();
-                String title = ((InventoryItem) response.body()).getTitle();
-                String description = ((InventoryItem) response.body()).getDescription();
-                String href = ((InventoryItem) response.body()).getHref();
-                DataBase db = new DataBase(MainActivity.this);
-                HashMap<String, String> map = new HashMap<>();
-
-                map.put("name", name);
-                map.put("title", title);
-                map.put("description", description);
-                map.put("href", href);
-                db.insertOrUpdate("olimp_inventory_items", "name='" + name + "'", map);
-                db.close();
-                //TODO: Разобраться в методах DataBase и добавить Item в базу если его еще там нет и обновить если инфа устарела
-                OlimpInventoryItemViewDialog.newInstance(name, title, description, href).show(getFragmentManager(), "ViewDialog");
+                InventoryItem ii = (InventoryItem) response.body();
+                if (ii.getTitle() != null) {
+                    DataBase db = new DataBase(MainActivity.this);
+                    db.insertOrUpdate("olimp_inventory_items", "name='" + ii.getName() + "'", ii.getMap());
+                    db.close();
+                    OlimpInventoryItemViewDialog.newInstance(ii.getName()).show(getFragmentManager(), "ViewDialog");
+                } else {
+                    OlimpInventoryItemEditDialog.newInstance(ii.getName()).show(getFragmentManager(), "EditDialog");
+                }
             }
 
             public void onFailure(@NotNull Call call, @NotNull Throwable t) {
-                MainActivity.this.scannerView.resumeCameraPreview(MainActivity.this);
+
+                DataBase db = new DataBase(MainActivity.this);
+                String name = result.getText();
+                Cursor c = db.query("olimp_inventory_items", null, "name='" + name + "'", null, null, null, null);
+                if (c == null || !c.moveToFirst()) {
+                    db.close();
+                    MainActivity.this.scannerView.resumeCameraPreview(MainActivity.this);
+                    return;
+                }
+                db.close();
+                OlimpInventoryItemViewDialog.newInstance(name).show(getFragmentManager(), "ViewDialog");
             }
         });
     }
