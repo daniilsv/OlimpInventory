@@ -55,9 +55,9 @@ class DataBase(context: Context) {
     }
 
     //Поучает Cursor по запросу из таблицы
-    fun query(table: String, columns: Array<String>?, selection: String,
-              selectionArgs: Array<String>?, groupBy: String?, having: String?,
-              orderBy: String?): Cursor? {
+    fun query(table: String, columns: Array<String>? = null, selection: String? = null,
+              selectionArgs: Array<String>? = null, groupBy: String? = null, having: String? = null,
+              orderBy: String? = null): Cursor? {
         var orderBy = orderBy
         if (orderBy == null)
             orderBy = "id DESC"
