@@ -18,6 +18,15 @@ class InventoryItem {
     @Expose
     var description: String? = null
 
+    fun getMap(): HashMap<String, String> {
+        val map: HashMap<String, String> = HashMap()
+        map["name"] = name!!
+        map["href"] = href!!
+        map["title"] = title!!
+        map["description"] = description!!
+        return map
+    }
+
     override fun toString(): String {
         if (title != null)
             return title!!

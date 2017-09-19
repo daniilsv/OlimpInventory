@@ -19,22 +19,18 @@ class DataBase(context: Context) {
     //Добавляет элемент в таблицу
     fun insert(table: String, sm: Map<*, *>): Long {
         val cv = ContentValues()
-        for (o in sm.entries) {
-            val pair = o
-            if (pair.value.toString().isNotEmpty())
-                cv.put(pair.key as String, pair.value.toString())
-        }
+        sm.entries
+                .filter { it.value.toString().isNotEmpty() }
+                .forEach { cv.put(it.key as String, it.value.toString()) }
         return db!!.insert(table, null, cv)
     }
 
     //Обновляет элемент таблицы по ID
     fun update(table: String, id: Int, sm: Map<*, *>): Long {
         val cv = ContentValues()
-        for (o in sm.entries) {
-            val pair = o
-            if (pair.value.toString().isNotEmpty())
-                cv.put(pair.key as String, pair.value.toString())
-        }
+        sm.entries
+                .filter { it.value.toString().isNotEmpty() }
+                .forEach { cv.put(it.key as String, it.value.toString()) }
         return db!!.update(table, cv, "id=" + id, null).toLong()
     }
 
@@ -50,9 +46,8 @@ class DataBase(context: Context) {
     }
 
     //Удаляет по запросу элемент из таблицы
-    fun delete(table: String, whereClause: String, whereArgs: Array<String>): Int {
-        return db!!.delete(table, whereClause, whereArgs)
-    }
+    fun delete(table: String, whereClause: String, whereArgs: Array<String>): Int =
+            db!!.delete(table, whereClause, whereArgs)
 
     //Поучает Cursor по запросу из таблицы
     fun query(table: String, columns: Array<String>? = null, selection: String? = null,
@@ -68,14 +63,11 @@ class DataBase(context: Context) {
     fun getCount(table: String, where: String): Int {
         val c = db!!.query(table, null, where, null, null, null, null)
         val ret = c.count
-        c.close()
         return ret
     }
 
     //Удаляет элемент по ID из таблицы
-    fun removeById(table: String, id: Int): Int {
-        return db!!.delete(table, "id = " + id, null)
-    }
+    fun removeById(table: String, id: Int): Int = db!!.delete(table, "id = " + id, null)
 
     fun close() {
         try {
@@ -95,10 +87,12 @@ class DataBase(context: Context) {
             Log.d(LOG_TAG, "--- onCreate database ---")
             ////////////////////
             db.execSQL("CREATE TABLE olimp_inventory_items (" +
-                    "name TEXT PRIMARY KEY," +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "name TEXT," +
                     "title TEXT DEFAULT NULL," +
                     "description TEXT DEFAULT NULL," +
-                    "href TEXT DEFAULT NULL);"
+                    "href TEXT DEFAULT NULL);" +
+                    "CREATE INDEX IF NOT EXISTS uniq ON olimp_inventory_items (name);"
             )
 
         }

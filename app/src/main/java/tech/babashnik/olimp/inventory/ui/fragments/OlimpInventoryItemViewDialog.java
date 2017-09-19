@@ -3,6 +3,7 @@ package tech.babashnik.olimp.inventory.ui.fragments;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -12,19 +13,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import tech.babashnik.olimp.inventory.R;
+import tech.babashnik.olimp.inventory.data.DataBase;
 import tech.babashnik.olimp.inventory.ui.activities.MainActivity;
 
 
 public class OlimpInventoryItemViewDialog extends DialogFragment {
     String name, title, desc, href;
 
-    public static OlimpInventoryItemViewDialog newInstance(String inventoryName, String inventoryTitle, String inventoryDesc, String inventoryHref) {
+    public static OlimpInventoryItemViewDialog newInstance(String inventoryName) {
         OlimpInventoryItemViewDialog f = new OlimpInventoryItemViewDialog();
         Bundle args = new Bundle();
         args.putString("name", inventoryName);
-        args.putString("title", inventoryTitle);
-        args.putString("desc", inventoryDesc);
-        args.putString("href", inventoryHref);
         f.setArguments(args);
 
         return f;
@@ -34,9 +33,15 @@ public class OlimpInventoryItemViewDialog extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         name = getArguments().getString("name");
-        title = getArguments().getString("title");
-        desc = getArguments().getString("desc");
-        href = getArguments().getString("href");
+        DataBase db = new DataBase(getActivity().getApplicationContext());
+        Cursor c = db.query("olimp_inventory_items", null, "name='" + name + "'", null, null, null, null);
+        if (c == null || !c.moveToFirst()) {
+            dismiss();
+            return;
+        }
+        title = c.getString(c.getColumnIndex("title"));
+        desc = c.getString(c.getColumnIndex("description"));
+        href = c.getString(c.getColumnIndex("href"));
     }
 
     @Override
