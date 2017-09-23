@@ -62,13 +62,13 @@ public class MainActivity extends AppCompatActivity implements ZXingScannerView.
                     return;
                 }
                 InventoryItem ii = (InventoryItem) response.body();
-                if (ii.getTitle() != null) {
+                if (ii != null && ii.getTitle() != null) {
                     DataBase db = new DataBase(MainActivity.this);
                     db.insertOrUpdate("olimp_inventory_items", "name='" + ii.getName() + "'", ii.getMap());
                     db.close();
                     OlimpInventoryItemViewDialog.newInstance(ii.getName()).show(getFragmentManager(), "ViewDialog");
                 } else {
-                    OlimpInventoryItemEditDialog.newInstance(ii.getName()).show(getFragmentManager(), "EditDialog");
+                    OlimpInventoryItemEditDialog.newInstance(result.getText()).show(getFragmentManager(), "EditDialog");
                 }
             }
 
