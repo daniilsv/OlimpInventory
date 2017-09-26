@@ -13,8 +13,14 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import tech.babashnik.olimp.inventory.R;
+import tech.babashnik.olimp.inventory.data.App;
 import tech.babashnik.olimp.inventory.data.DataBase;
+import tech.babashnik.olimp.inventory.data.components.olimp.OlimpApi;
+import tech.babashnik.olimp.inventory.data.components.olimp.inventory.InventoryItem;
 import tech.babashnik.olimp.inventory.ui.activities.MainActivity;
 
 
@@ -62,22 +68,42 @@ public class OlimpInventoryItemEditDialog extends DialogFragment {
 
         View v = inflater.inflate(R.layout.olimp_inventory_item_edit, container, false);
         ((TextView) v.findViewById(R.id.nameView)).setText(name);
-        ((EditText) v.findViewById(R.id.titleEdit)).setText(title);
-        ((EditText) v.findViewById(R.id.descriptionEdit)).setText(desc);
-        ((EditText) v.findViewById(R.id.hrefEdit)).setText(href);
         final EditText titleEdit = (EditText) v.findViewById(R.id.titleEdit);
+        titleEdit.setText(title);
         final EditText descriptionEdit = (EditText) v.findViewById(R.id.descriptionEdit);
+        descriptionEdit.setText(desc);
         final EditText hrefEdit = (EditText) v.findViewById(R.id.hrefEdit);
-
+        hrefEdit.setText(href);
         v.findViewById(R.id.saveButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 //TODO: сделать сохранение. ну.. хотя бы получение введенных данных!
-                String j = titleEdit.getText().toString();
-                descriptionEdit.getText().toString();
-                hrefEdit.getText().toString();
-                j = new StringBuilder(j).insert(j.length(), "j").toString();
-                //мы хз что тут делать..выше наше предположение но там не понятно что в скобках,я запуталась..не злись,выздоравливай))
+                title = titleEdit.getText().toString();
+                desc = descriptionEdit.getText().toString();
+                href = hrefEdit.getText().toString();
+                OlimpApi oA = App.Companion.getOlimp();
+                if (oA == null)
+                    return;
+                oA.insertInventoryItem(name, title, href, desc).enqueue(new Callback<InventoryItem>() {
+                    @Override
+                    public void onResponse(Call call, Response response) {
+                        if (response == null) {
+                            return;
+                        }
+                        InventoryItem ii = (InventoryItem) response.body();
+                        if (ii != null && ii.getTitle() != null) {
+                            DataBase db = new DataBase(OlimpInventoryItemEditDialog.this.getActivity().getApplicationContext());
+                            db.insertOrUpdate("olimp_inventory_items", "name='" + ii.getName() + "'", ii.getMap());
+                            db.close();
+
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<InventoryItem> call, Throwable t) {
+
+                    }
+                });
 
 
             }
